@@ -136,10 +136,16 @@ impl IpNet {
     /// let bad_prefix_len = IpNet::new(Ipv6Addr::LOCALHOST.into(), 129);
     /// assert_eq!(bad_prefix_len, Err(PrefixLenError));
     /// ```
-    pub fn new(ip: IpAddr, prefix_len: u8) -> Result<IpNet, PrefixLenError> {
+    pub const fn new(ip: IpAddr, prefix_len: u8) -> Result<IpNet, PrefixLenError> {
         Ok(match ip {
-            IpAddr::V4(a) => Ipv4Net::new(a, prefix_len)?.into(),
-            IpAddr::V6(a) => Ipv6Net::new(a, prefix_len)?.into(),
+            IpAddr::V4(a) => match Ipv4Net::new(a, prefix_len) {
+                Ok(net) => IpNet::V4(net),
+                Err(err) => return Err(err),
+            },
+            IpAddr::V6(a) => match Ipv6Net::new(a, prefix_len) {
+                Ok(net) => IpNet::V6(net),
+                Err(err) => return Err(err),
+            },
         })
     }
 
